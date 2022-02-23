@@ -177,3 +177,13 @@ Now test that it worked.   Selecting from the table should give you clean data b
 4.  _before re-enabling your nifi generator_ test your Hive query again.  You should see a new field with the default value for the new field.
 5.  Re-enable your GenerateFlowfile processor
 6.  Run your Hive query one more time.  You should see actual data in the new field.
+ 
+ 
+## Troubleshooting
+ 
+ * `[Error 90]` blah blah address alrady in use.   It's possible you have a prior instance of this thing running, find the pid and kill it.
+ 
+ `ss -lnp | grep 18763`
+ 
+ 
+ 
