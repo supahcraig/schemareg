@@ -102,6 +102,9 @@ This step could vary depending on how you've got your cluster arranged with resp
   * Leave Enable API Gateway CORS unchecked
 6.  Click `Create Resource`
 
+*this is wrong*
+should be a base resource, with the {resource} under it, and the GET method under the {resource}
+
 ### Add a Method
 7.  Click on the resource you just created
 8.  From the Actions dropdown, select `Create Method`
