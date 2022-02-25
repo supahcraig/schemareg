@@ -2,7 +2,7 @@
 To enable schema registry usage in Hive
 
 
-The cloudera schema registry lacks an API to return a "clean" version of the schema, which Hive requires in order to read Avro data.   For what it's worth, the confluent schema registry has this functionality.
+The cloudera schema registry lacks an API to return a "clean" version of the schema, which Hive requires in order to read Avro data.   For what it's worth, the confluent schema registry has this functionality.  This allows Hive to gain the benefit of dynamic schema evolution, rather than maintaining a physical copy of the schema in HDFS and needing to point the hive table at that schema.   The hive table would also need to be rebuilt in the event of a schema change.   This solution gets around that limitation.
 
 Through fastapi & uvicorn, we can use existing schema registry APIs to enable this functionality, which effectively enbales schema evolution in Hive.  Alternatively, the API could be served up as a lambda function via AWS API Gateway.  The former is much easier but has some drawbacks.   The latter has a more involved setup but overcomes nearly every shortcoming that our fastapi implementation creates.   
 
@@ -188,6 +188,8 @@ Now test that it worked.   Selecting from the table should give you clean data b
 5.  Re-enable your GenerateFlowfile processor
 6.  Run your Hive query one more time.  You should see actual data in the new field.
  
+ 
+*NOTE:* initial testing showed this absolutely working as expected.   Subsequent tests don't show the new field populated with actual data; the default value is being pulled in.   Requires further investigation. 
  
 ## Troubleshooting
  
