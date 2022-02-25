@@ -96,8 +96,16 @@ This converts the generatd JSON to Avro
 * `Directory`:  /user/nifi/incoming _or wherever you want to write your data to in HDFS_
 
 
-## Fastapi setup
-  
+## API setup
+
+This can be done using fastapi, which requires a python program to run on one of your nodes, or you can use AWS Lambda + AWS API Gateway to host it instead.   Fastapi requires less steps, but Lambda is going to be more resilient.
+ 
+### Lambda setup
+https://github.com/supahcraig/schemareg/blob/master/Using%20AWS%20Lambda.md
+
+ 
+### FastAPI setup
+ 
 You'll need to have the fastapi API up and running before you create the table, or else it will fail.  SSH to a host...doesn't really matter which host, so long as the security groups & route tables allow traffic.
 
 clone the repo
