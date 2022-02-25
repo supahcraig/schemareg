@@ -10,7 +10,7 @@ The code for the lambda function is in the `lambda_function.py` found in this re
 We need to clone this repo to get the lambda function code, then pip install requests into a new folder.   We will zip that up, and then add the lambda function to the zip.   This preserves the diretory structure that AWS Lambda requires.
 
 ```
-git clone <this repo>
+git clone https://github.com/supahcraig/schemareg.git
 cd schemareg
 mkdir package
 pip install --target ./package requests
