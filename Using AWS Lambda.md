@@ -2,18 +2,8 @@
 
 Setting up the schemareg passthru api via python/fastapi app on the nodes is inherently problematic.   It requires installing several python packages, isn't resilient (really ought to be behind a load balancer).  A better solution would be to deploy this instead as a lambda function on AWS and make use of the AWS API Gateway to handle the request.
 
-
-High level steps:
-create a lambda function in your VPC
-create an execution role
-add a policy to the role
-
-create api
-create resource ==> method ==> resource {parameter}
-
-add security policy to allow http traffic from the lambda
-
-## Create Lambda Function
+---
+## 1.  Create Lambda Function
 
 The code for the lambda function is in the `lambda_function.py` found in this repo.   The trick, is that we need to package it up with the requests library.
 
@@ -30,7 +20,7 @@ cd ..
 zip -g my-deployment.zip lambda_function.py
 ```
 
-### Actually Create the Lambda
+### 1a.  Actually Create the Lambda
 
 1.  Go to the Lambda console in the AWS UI
 2.  Click `Create Function`
@@ -48,7 +38,7 @@ zip -g my-deployment.zip lambda_function.py
 9.  Click `Create Function`
 
 
-### Upload your Code
+### 1b.  Upload your Code
 
 10.  Find the `Upload from` button above the code editor pane, and select `.zip file`
 11.  Click `Upload` to navigate to your zip file
@@ -57,7 +47,8 @@ zip -g my-deployment.zip lambda_function.py
 
 You should see your Python code in the editor window, along with several folders related to the requests library we packed up eariler.
 
-### Set up environment variables
+
+### 1c.  Set up environment variables
 
 The hostname of the schema registry will vary across CDP deployments.   The port will vary depending on if your CDP cluster is secured or not.   Regardless, these two values are baked into lambda environment variables which we much set up
 
@@ -70,9 +61,8 @@ The hostname of the schema registry will vary across CDP deployments.   The port
 18.  Click `Save`
 
 
-
-
-## Update IAM role/policy
+---
+## 2.  Update IAM role/policy
 
 20.  Go to the IAM console in the AWS UI
 21.  Search for the IAM role AWS created for you when you built your lambda
@@ -80,7 +70,8 @@ The hostname of the schema registry will vary across CDP deployments.   The port
 23.  Filter for `AWSLambdaVPCAccesExecutionRole` which gives the necessary privs to work with ENIs & write logs. 
 
 
-## Update Security Group
+---
+## 3.  Update Security Group
 
 This step could vary depending on how you've got your cluster arranged with respect to security groups, so it may be best to just explain what traffic needs to be allowed & from where.
 
@@ -88,13 +79,16 @@ This step could vary depending on how you've got your cluster arranged with resp
 * The schema registry resides on an EC2 instance that has a security group attached
   * this security group needs to allow HTTP(?) traffic _from_ the security group that the lambda belongs to
 
-## Create API
+
+---
+## 4.  Create API
 
 1. Go to the API Gateway console in AWS
 2. BUILD a REST API that is only accessible from within a VPC
 3. Create a new REST API, give it any name you like and make the Endpoint Type Private
 
-### Add a Resource
+
+### 4a.  Add a Resource
 4.  Click on the `/` and under the Actions menu pick `Create Resource`
 5.  give it a name like `Schema Name`
   * Leave proxy resource unchecked
@@ -102,54 +96,54 @@ This step could vary depending on how you've got your cluster arranged with resp
   * Leave Enable API Gateway CORS unchecked
 6.  Click `Create Resource`
 
-*this is wrong*
-should be a base resource, with the {resource} under it, and the GET method under the {resource}
 
-### Add a Method
-7.  Click on the resource you just created
-8.  From the Actions dropdown, select `Create Method`
-9.  A drop down will appear under your resource, select `GET`
-10.  Press the checkmark button next to the method
-11.  Select Lambda Function as the integration type
-12.  Enable Lambda Proxy Integration
-13.  Choose your region
-14.  Type the name of your lambda function in the Lambda Function box
-15.  Use the Default Timeout
-16.  Click `Save`
-17.  AWS will pop up an alert about some permissions it is about to assign, click `OK` (_it is always a good idea to understand what privs are minimally necessary_)
+### 4b.  Add another Resources for a path parameter
+7.  Click on the resource you just created, and select `Create Resource` from the Actions dropdown.
+8.  Do not configure as a proxy resource.
+9.  Name it `subject`
+10.  Use `{subject}` for the Resource Path, including the curly braces.   This will allow us to pass in the name of our schema registry object (which it calls a "subject") as a path parameter.
 
 
-### Add a Resources for a path parameter
-18.  Click on your method, and select `Create Resource` from the Actions dropdown.
-19.  Do not configure as a proxy resource
-20.  Name it `subject`
-21.  Use `{subject}` for the Resource Path.   This will allow us to pass in the name of our schema registry object (which it calls a "subject") as a path parameter.
+### 4c.  Add a Method
+8.  Click on the resource you just created
+9.  From the Actions dropdown, select `Create Method`
+10.  A drop down will appear under your resource, select `GET`
+11.  Press the checkmark button next to the method
+12.  Select Lambda Function as the integration type
+13.  Enable Lambda Proxy Integration.  This allows the request parameters to be passed to the labmda.
+14.  Choose your region
+15.  Type the name of your lambda function in the Lambda Function box
+16.  Use the Default Timeout
+17.  Click `Save`
+18.  AWS will pop up an alert about some permissions it is about to assign, click `OK` (_it is always a good idea to understand what privs are minimally necessary_)
 
 
-### Deploy your API
-22.  Click on your method again, and select `Deploy API` from the Actions dropdown.
-23.  Choose a deployment stage (or use an existing one).
+### 4d.  Deploy your API
+19.  Click on your method again, and select `Deploy API` from the Actions dropdown.
+20.  Choose a deployment stage (or use an existing one).
   * Deployment stages are where your API will be deployed.   Think:  dev/test/prod
-24.  Click `Deploy`
+21.  Click `Deploy`
 
-### See if it worked
+
+### 4e.  See if it worked
 
 Under Stages, click on your resource to see the URL for your API.  Note this has an AWS hostname followed by your deployment stage name, followed by your resource.  Paste that into a new browser window, and add your scheme registry object to the URL.
 
+Here are the URLs that were generated when I ran this.  Yours will be different.
 AWS Provided URL:  `https://3poig7ld4f.execute-api.us-east-2.amazonaws.com/test/schemaname`
 
 add your schema registry subject name:
 
-`https://3poig7ld4f.execute-api.us-east-2.amazonaws.com/test/schemaname/mySchemaRegistryEntry`
+`https://3poig7ld4f.execute-api.us-east-2.amazonaws.com/test/schemaname/your_schema_name`
 
-and you should see something like this return:
+and you should see something like this return if you have a schema registry stored in the Schema Registry.
 
 ```
 {"name": "MyClass", "type": "record", "namespace": "com.acme.avro", "fields": [{"name": "foo", "type": "string"}, {"name": "bar", "type": "string"}, {"name": "opt", "type": ["null", "string"], "default": null}]}
 ```
 
 
-
+TODO:  make this work on a secured cluster (i.e. CDP public cloud)
 
 
 
