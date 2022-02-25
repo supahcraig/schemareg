@@ -4,7 +4,7 @@ To enable schema registry usage in Hive
 
 The cloudera schema registry lacks an API to return a "clean" version of the schema, which Hive requires in order to read Avro data.   For what it's worth, the confluent schema registry has this functionality.
 
-Through fastapi & uvicorn, we can use existing schema registry APIs to enable this functionality, which effectively enbales schema evolution in Hive.
+Through fastapi & uvicorn, we can use existing schema registry APIs to enable this functionality, which effectively enbales schema evolution in Hive.  Alternatively, the API could be served up as a lambda function via AWS API Gateway.  The former is much easier but has some drawbacks.   The latter has a more involved setup but overcomes nearly every shortcoming that our fastapi implementation creates.   
 
 
 
@@ -12,7 +12,7 @@ Through fastapi & uvicorn, we can use existing schema registry APIs to enable th
 Other thoughts:
 
 * probably run as a docker container or service
-* add async 
+* add async?
 * test running on multiple nodes behind the existing load balancer ==> this might be a trick
 * developed against an unsecured cluster; needs to work on a kerberized cluster
 
@@ -20,7 +20,7 @@ Other thoughts:
 
 # See it in action
 
-Assumes you have an unsecured CDP cluster running nifi, schema registry, & hive.   This example uses HDFS, but it should work on s3 or ozone as well with minor tweaks.
+Assumes you have an unsecured CDP cluster running nifi, schema registry, & hive.   This example uses HDFS, but it should work on s3 or ozone as well with minor tweaks.  More work needs to be done to make this work on a secured cluster.
 
 ## Schema Registry
 
@@ -139,6 +139,8 @@ STORED as AVRO
 LOCATION '/user/nifi/incoming/'
 TBLPROPERTIES ('avro.schema.url'='http://cdp.3.128.74.236.nip.io:18763/schemaName/your_schema_name');
 ```
+
+ *NOTE:* the URL for the avro schema will depend on your setup, and if you used fastapi or a lambda/api gateway.
 
 Now test that it worked.   Selecting from the table should give you clean data back out.
 
