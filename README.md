@@ -1,5 +1,5 @@
 # schemareg
-To enable schema registry usage in Hive
+To enable schema registry usage in Hive.  Whether or not this is something you _should_ do is left as an exercise for the reader.
 
 
 The cloudera schema registry lacks an API to return a "clean" version of the schema, which Hive requires in order to read Avro data.   For what it's worth, the confluent schema registry has this functionality.  This allows Hive to gain the benefit of dynamic schema evolution, rather than maintaining a physical copy of the schema in HDFS and needing to point the hive table at that schema.   The hive table would also need to be rebuilt in the event of a schema change.   This solution gets around that limitation.
@@ -95,7 +95,9 @@ This converts the generatd JSON to Avro
 * `Hadoop Confuguration Resources`: find the path to core-site.xml & hdfs-site.xml
 * `Directory`:  /user/nifi/incoming _or wherever you want to write your data to in HDFS_
 
-
+This may require some HDFS permission work in order to write
+ 
+ 
 ## API setup
 
 This can be done using fastapi, which requires a python program to run on one of your nodes, or you can use AWS Lambda + AWS API Gateway to host it instead.   Fastapi requires less steps, but Lambda is going to be more resilient.
